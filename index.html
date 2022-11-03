@@ -61,10 +61,10 @@
   paintCanvasG.width = window.innerWidth;
   paintCanvasG.height = window.innerHeight - botonescanvas.scrollHeight;
 
-  const contextG = paintCanvas.getContext( '2d' );
-  contextG.lineCap = 'round';  
+  const contextG = paintCanvasG.getContext( '2d' );
+  contextG.lineCap = 'round';
 
-  const context = paintCanvasG.getContext( '2d' );
+  const context = paintCanvas.getContext( '2d' );
   context.lineCap = 'round';
   context.globalCompositeOperation = 'source-over';
   
