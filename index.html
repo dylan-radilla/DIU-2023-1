@@ -1,0 +1,182 @@
+<!DOCTYPE html> 
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://kit.fontawesome.com/7e82edf099.js" crossorigin="anonymous"></script>
+  <title>Prueba de Canvas</title>
+  <link href="./css/styles.css" rel="stylesheet"/>
+</head>
+<body>
+
+  <section class="botones">
+    <input type="color"  class="js-color-picker  color-picker">
+
+    <input type="range" class="js-line-range" min="1" max="72" value="1">
+    <label class="js-range-value">1</label>Px
+
+    <button  id="lapiz" type="button"> 
+      <p>Dibujar</p>
+      <i class="fa-sharp fa-solid fa-pen"></i>
+    </button>
+    
+    <button  id="goma" type="button"> 
+      <p>Borrar</p>
+      <i class="fa-sharp fa-solid fa-eraser"></i>
+    </button>
+
+    <!-- <button  id="malla" type="button"> 
+      <p>Grid</p>
+      <i class="fa-sharp fa-solid fa-table-cells"></i>
+    </button> -->
+    <input id="malla" type="checkbox" name="" value="false">
+    <label id="label-malla" class="check" for="malla"><p>Grid</p><i class="fa-solid fa-table-cells"></i></label>
+
+    <button  id="borrar" type="button"> 
+      <p>Borrar pizarra</p>
+      <i class="fa-sharp fa-solid fa-trash"></i>
+    </button>
+
+  </section>
+
+  <div class="canva">
+    <canvas class="js-paint  paint-canvas" width="10" height="10"></canvas>
+    <canvas id="grid" class="js-paint  paint-canvas" width="10" height="10" ></canvas>
+  </div>
+
+</body>
+
+
+<script>
+  
+  const paintCanvasG = document.querySelector( '.js-paint' );
+  const paintCanvas = document.querySelector( '#grid' );
+
+  const botonescanvas = document.querySelector('.botones');
+
+  paintCanvas.width = window.innerWidth;
+  paintCanvas.height = window.innerHeight - botonescanvas.scrollHeight;
+  
+  paintCanvasG.width = window.innerWidth;
+  paintCanvasG.height = window.innerHeight - botonescanvas.scrollHeight;
+
+  const contextG = paintCanvas.getContext( '2d' );
+  contextG.lineCap = 'round';  
+
+  const context = paintCanvasG.getContext( '2d' );
+  context.lineCap = 'round';
+  context.globalCompositeOperation = 'source-over';
+  
+
+    //Buscar solucion guardado de estado de window previo a resize
+    window.addEventListener('resize', () => {
+    paintCanvas.width = window.innerWidth;
+    paintCanvas.height = window.innerHeight - botonescanvas.scrollHeight;
+    context.lineCap = 'round';
+    paintCanvasG.width = window.innerWidth;
+    paintCanvasG.height = window.innerHeight - botonescanvas.scrollHeight;
+    contextG.lineCap = 'round';
+  })
+
+  // Box width
+  var bw = paintCanvasG.width;
+  // Box height
+  var bh = paintCanvasG.height;
+  // Padding
+  var p = 10;
+
+  function drawGrid(){
+    contextG.clearRect(0,0,bw,bh);
+    for (var x = 0; x <= bw; x += 40) {
+        contextG.moveTo(0.5 + x, 0);
+        contextG.lineTo(0.5 + x, bh);
+    }
+
+    for (var x = 0; x <= bh; x += 40) {
+        contextG.moveTo(0, 0.5 + x);
+        contextG.lineTo(bw, 0.5 + x);
+    }
+    contextG.strokeStyle = "black";
+    contextG.stroke();
+  }
+
+  const malla = document.querySelector('#malla');
+
+  malla.addEventListener('change', function (event) {
+    if (malla.checked) {
+      drawGrid();
+    } else {
+      contextG.clearRect(0,0,window.innerWidth, window.innerHeight - botonescanvas.scrollHeight);  
+    }
+  });
+  
+  const procesarClickBorrar = function (event) {
+    context.clearRect(0,0,window.innerWidth, window.innerHeight - botonescanvas.scrollHeight);
+  }
+
+  const procesarClickGoma = function (event) {
+    context.globalCompositeOperation="destination-out";
+  }
+
+  const procesarClickLapiz = function (event) {
+    context.globalCompositeOperation="source-over";
+  }
+
+  const colorPicker = document.querySelector( '.js-color-picker');
+
+  const colorListener = function (event) {
+    context.strokeStyle = event.target.value;
+    console.log(event.target) // <input type="color"  class="js-color-picker  color-picker">
+  }
+  
+  colorPicker.addEventListener( 'change', colorListener);
+
+  const lineWidthRange = document.querySelector( '.js-line-range' );
+  const lineWidthLabel = document.querySelector( '.js-range-value' );
+
+
+  lineWidthRange.addEventListener( 'input', event => {
+      const width = event.target.value;
+      lineWidthLabel.innerHTML = width;
+      context.lineWidth = width;
+  } );
+
+  let x = 0, y = 0;
+  let isMouseDown = false;
+
+  const stopDrawing = () => { isMouseDown = false; }
+  const startDrawing = event => {
+      isMouseDown = true;   
+     [x, y] = [event.offsetX, event.offsetY];  
+  }
+  const drawLine = event => {
+      if ( isMouseDown ) {
+          const newX = event.offsetX;
+          const newY = event.offsetY;
+          context.beginPath();
+          context.moveTo( x, y );
+          context.lineTo( newX, newY );
+          context.stroke();
+          //[x, y] = [newX, newY];
+          x = newX;
+          y = newY;
+      }
+  }
+
+  paintCanvas.addEventListener( 'mousedown', startDrawing );
+  paintCanvas.addEventListener( 'mousemove', drawLine );
+  paintCanvas.addEventListener( 'mouseup', stopDrawing );
+  paintCanvas.addEventListener( 'mouseout', stopDrawing );
+
+  const borrarCanvasButton = document.querySelector('#borrar');
+  borrarCanvasButton.addEventListener('click', procesarClickBorrar);
+
+  const gomaButton = document.querySelector('#goma');
+  gomaButton.addEventListener('click', procesarClickGoma);
+
+  const lapizButton = document.querySelector('#lapiz');
+  lapizButton.addEventListener('click', procesarClickLapiz);
+
+</script>
+</html>
